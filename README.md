@@ -9,3 +9,6 @@ It's test task
 3. set up .env file ```cp .env.example .env```
 4. run ```php artisan migrate``` and ```php artisan db:seed``` to seed test data
 5. enjoy
+
+## Tips
++ in ```db_schema.mwb``` you can find graphic db schema (for workbench sql)
