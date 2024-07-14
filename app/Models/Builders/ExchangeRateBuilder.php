@@ -10,6 +10,9 @@ class ExchangeRateBuilder extends Builder
 {
     public function getExchangeRate(Currency $source, Currency $destination): float
     {
+        if ($source->name === $destination->name) {
+            return 1;
+        }
         /** @var ExchangeRate $exchangeRate */
         $exchangeRate = ExchangeRate::query()->whereCurrency($source, $destination)->first();
         if (null !== $exchangeRate) {

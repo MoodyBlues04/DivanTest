@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\BankAccount;
 use App\Models\Currency;
+use App\Models\CurrencyAccount;
 use App\Models\Enums\CurrencyName;
 use App\Models\ExchangeRate;
 use App\Models\User;
@@ -14,7 +15,7 @@ class BankAccountTest extends TestCase
 {
     use RefreshDatabase;
 
-    private const MAIN_CURRENCY = CurrencyName::RUB;
+    private CurrencyName $mainCurrency = CurrencyName::RUB;
 
     private ?User $user = null;
     private ?BankAccount $bankAccount = null;
@@ -44,15 +45,16 @@ class BankAccountTest extends TestCase
 
     public function testSetMainCurrency(): void
     {
-        $this->assertTrue($this->bankAccount->setMainCurrencyAccount(self::MAIN_CURRENCY));
+        $this->assertTrue($this->bankAccount->setMainCurrencyAccount($this->mainCurrency));
         $this->assertNotNull($this->bankAccount->getMainCurrencyAccount());
-        $this->assertEquals(self::MAIN_CURRENCY, $this->bankAccount->getMainCurrencyAccount()->currency->name);
+        $this->assertEquals($this->mainCurrency, $this->bankAccount->getMainCurrencyAccount()->currency->name);
     }
 
     public function testRecharge(): void
     {
         foreach ($this->currencyAmounts as $name => $amount) {
             $this->assertTrue($this->bankAccount->recharge($amount, CurrencyName::tryFrom($name)));
+            $this->assertEquals($amount, $this->bankAccount->currencyBalance(CurrencyName::tryFrom($name)));
         }
     }
 
@@ -65,7 +67,7 @@ class BankAccountTest extends TestCase
             $this->assertEquals($amount, $this->bankAccount->currencyBalance(CurrencyName::tryFrom($name)));
         }
         $this->assertEquals(
-            $this->currencyAmounts[self::MAIN_CURRENCY->value],
+            $this->currencyAmounts[$this->mainCurrency->value],
             $this->bankAccount->currencyBalance()
         );
     }
@@ -103,5 +105,26 @@ class BankAccountTest extends TestCase
 
         $this->assertTrue(ExchangeRate::query()->setExchangeRate($source, $destination, $rate));
         $this->assertEquals($rate, ExchangeRate::query()->getExchangeRate($source, $destination));
+    }
+
+    public function testTotalBalance(): void
+    {
+        $this->testSetMainCurrency();
+        $this->testRecharge();
+
+        $expected = 0;
+        $destination = $this->bankAccount->getMainCurrencyAccount()->currency;
+        foreach ($this->currencyAmounts as $name => $amount) {
+            $source = Currency::query()->getByName(CurrencyName::tryFrom($name));
+            $rate = ExchangeRate::query()->getExchangeRate($source, $destination);
+            $expected += $amount * $rate;
+        }
+        $this->assertEquals($expected, $this->bankAccount->totalBalance());
+    }
+
+    public function testTotalBalanceWithAnotherMainCurrency(): void
+    {
+        $this->mainCurrency = CurrencyName::USD;
+        $this->testTotalBalance();
     }
 }
