@@ -36,14 +36,15 @@ class BankAccountTest extends TestCase
         foreach ($this->bankAccount->getCurrencyNames() as $currencyName) {
             $this->assertTrue(in_array($currencyName->value, array_keys($this->currencyAmounts)));
         }
+
+//        TODO pcov coverage
     }
 
     public function testSetMainCurrency(): void
     {
-//        TODO pcov coverage
-
         $this->assertTrue($this->bankAccount->setMainCurrencyAccount(self::MAIN_CURRENCY));
         $this->assertNotNull($this->bankAccount->getMainCurrencyAccount());
+        $this->assertEquals(self::MAIN_CURRENCY, $this->bankAccount->getMainCurrencyAccount()->currency->name);
     }
 
     public function testRecharge(): void
@@ -59,11 +60,36 @@ class BankAccountTest extends TestCase
         $this->testRecharge();
 
         foreach ($this->currencyAmounts as $name => $amount) {
-            $this->assertEquals($amount, $this->bankAccount->getBalance(CurrencyName::tryFrom($name)));
+            $this->assertEquals($amount, $this->bankAccount->balance(CurrencyName::tryFrom($name)));
         }
         $this->assertEquals(
             $this->currencyAmounts[self::MAIN_CURRENCY->value],
-            $this->bankAccount->getBalance()
+            $this->bankAccount->balance()
         );
+    }
+
+    public function testChargeSuccess(): void
+    {
+        $this->testRecharge();
+
+        foreach ($this->currencyAmounts as $name => $amount) {
+            $currencyName = CurrencyName::tryFrom($name);
+            $toPay = fake()->numberBetween(0, $amount);
+            $expected = $amount - $toPay;
+            $this->assertTrue($this->bankAccount->charge($toPay, $currencyName));
+            $this->assertEquals($expected, $this->bankAccount->balance($currencyName));
+        }
+    }
+
+    public function testChargeNotEnoughMoney(): void
+    {
+        $this->testRecharge();
+
+        foreach ($this->currencyAmounts as $name => $amount) {
+            $currencyName = CurrencyName::tryFrom($name);
+            $toPay = fake()->numberBetween($amount + 1, $amount + 1000);
+            $this->expectException(\LogicException::class);
+            $this->assertTrue($this->bankAccount->charge($toPay, $currencyName));
+        }
     }
 }

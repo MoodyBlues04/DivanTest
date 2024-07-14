@@ -82,7 +82,17 @@ class BankAccount extends Model
         return $currencyAccount->save();
     }
 
-    public function getBalance(?CurrencyName $currencyName = null): int
+    public function charge(int $amount, CurrencyName $currencyName): bool
+    {
+        $currencyAccount = $this->currencyAccountsBuilder()->getByNameOrFail($currencyName);
+        if ($currencyAccount->amount < $amount) {
+            throw new \LogicException("Not enough money to charge in currency: $currencyName->value");
+        }
+        $currencyAccount->amount -= $amount;
+        return $currencyAccount->save();
+    }
+
+    public function balance(?CurrencyName $currencyName = null): int
     {
         if (null === $currencyName) {
             $currencyAccount = $this->getMainCurrencyAccount();
