@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\UserBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -16,10 +17,19 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $password
  *
  * @property-read BankAccount $bankAccount
+ *
+ * @method static UserBuilder query()
  */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    public const DEFAULT_NAME = 'test';
+
+   public function newEloquentBuilder($query): UserBuilder
+   {
+       return new UserBuilder($query);
+   }
 
     protected $fillable = [
         'name',
@@ -40,5 +50,11 @@ class User extends Authenticatable
     public function bankAccount(): HasOne
     {
         return $this->hasOne(BankAccount::class, 'user_id');
+    }
+
+    public function openBankAccountOrGet(): BankAccount
+    {
+        /** @var BankAccount */
+        return $this->bankAccount()->createOrFirst();
     }
 }

@@ -3,7 +3,7 @@
 
 namespace App\Models\Enums;
 
-enum Currencies: string
+enum CurrencyName: string
 {
     case RUB = 'RUB';
     case USD = 'USD';

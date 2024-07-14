@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Builders\CurrencyAccountBuilder;
+use App\Models\Enums\CurrencyName;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,5 +33,52 @@ class BankAccount extends Model
     public function currencyAccounts(): HasMany
     {
         return $this->hasMany(CurrencyAccount::class, 'bank_account_id');
+    }
+
+    public function currencyAccountsBuilder(): CurrencyAccountBuilder
+    {
+        return (new CurrencyAccountBuilder($this->currencyAccounts()->getQuery()->getQuery()))
+            ->setModel($this->currencyAccounts()->getQuery()->getModel());
+    }
+
+    public function addCurrency(CurrencyName $currencyName): CurrencyAccount
+    {
+        $currency = Currency::query()->getByName($currencyName);
+        if (null === $currency) {
+            throw new \InvalidArgumentException("Invalid currency name: $currencyName->value");
+        }
+        /** @var CurrencyAccount */
+        return $this->currencyAccounts()->firstOrCreate(['currency_id' => $currency->id]);
+    }
+
+    /**
+     * @return CurrencyName[]
+     */
+    public function getCurrencyNames(): array
+    {
+        return $this->currencyAccounts
+            ->map(fn (CurrencyAccount $currencyAccount) => $currencyAccount->currency->name)
+            ->all();
+    }
+
+    public function getMainCurrencyAccount(): ?CurrencyAccount
+    {
+        /** @var ?CurrencyAccount */
+        return $this->currencyAccountsBuilder()->main()->first();
+    }
+
+    public function setMainCurrencyAccount(CurrencyName $currencyName): bool
+    {
+        $currencyAccount = $this->currencyAccountsBuilder()->getByNameOrFail($currencyName);
+        $this->currencyAccountsBuilder()->main()->update(['is_main' => false]);
+        $currencyAccount->is_main = true;
+        return $currencyAccount->save();
+    }
+
+    public function recharge(int $amount, CurrencyName $currencyName): bool
+    {
+        $currencyAccount = $this->currencyAccountsBuilder()->getByNameOrFail($currencyName);
+        $currencyAccount->amount += $amount * 100;
+        return $currencyAccount->save();
     }
 }

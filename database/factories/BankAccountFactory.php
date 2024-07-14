@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\User;
-use Database\Seeders\UserSeeder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +17,7 @@ class BankAccountFactory extends Factory
      */
     public function definition(): array
     {
-        $user = User::query()->where('name', UserSeeder::DEFAULT_NAME)->first()
+        $user = User::query()->where('name', User::DEFAULT_NAME)->first()
             ?? User::factory()->create();
 
         return [

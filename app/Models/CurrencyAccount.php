@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\CurrencyAccountBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * @property-read BankAccount $bankAccount
  * @property-read Currency $currency
+ *
+ * @method static CurrencyAccountBuilder query()
  */
 class CurrencyAccount extends Model
 {
@@ -26,6 +29,11 @@ class CurrencyAccount extends Model
         'bank_account_id',
         'currency_id',
     ];
+
+    public function newEloquentBuilder($query): CurrencyAccountBuilder
+    {
+        return new CurrencyAccountBuilder($query);
+    }
 
     public function bankAccount(): BelongsTo
     {

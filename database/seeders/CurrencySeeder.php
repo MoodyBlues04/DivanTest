@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Currency;
-use App\Models\Enums\Currencies;
+use App\Models\Enums\CurrencyName;
 use App\Models\ExchangeRate;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Database\Seeder;
@@ -18,9 +18,9 @@ class CurrencySeeder extends Seeder
         $currencies = Currency::factory()
             ->count(3)
             ->state(new Sequence(
-                ['name' => Currencies::RUB],
-                ['name' => Currencies::USD],
-                ['name' => Currencies::EUR],
+                ['name' => CurrencyName::RUB],
+                ['name' => CurrencyName::USD],
+                ['name' => CurrencyName::EUR],
             ))->create();
 
         $currenciesIds = $currencies->reduce(function (array $carry, Currency $item) {
@@ -30,18 +30,18 @@ class CurrencySeeder extends Seeder
 
         $rates = [
             [
-                'source' => Currencies::USD->name,
-                'destination' => Currencies::RUB->name,
+                'source' => CurrencyName::USD->name,
+                'destination' => CurrencyName::RUB->name,
                 'rate' => 70 * 100,
             ],
             [
-                'source' => Currencies::EUR->name,
-                'destination' => Currencies::RUB->name,
+                'source' => CurrencyName::EUR->name,
+                'destination' => CurrencyName::RUB->name,
                 'rate' => 80 * 100,
             ],
             [
-                'source' => Currencies::USD->name,
-                'destination' => Currencies::EUR->name,
+                'source' => CurrencyName::USD->name,
+                'destination' => CurrencyName::EUR->name,
                 'rate' => 1 * 100,
             ],
         ];

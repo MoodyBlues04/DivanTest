@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Enums\Currencies;
+use App\Models\Enums\CurrencyName;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +18,7 @@ class CurrencyFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->randomElement(Currencies::cases()),
+            'name' => fake()->randomElement(CurrencyName::cases()),
         ];
     }
 }
