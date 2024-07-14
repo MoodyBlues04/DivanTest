@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Builders\ExchangeRateBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,10 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $source_currency_id
  * @property int $destination_currency_id
- * @property int $rate stored multiplied by 100, because of double inaccuracy
+ * @property int $rate
  *
  * @property-read Currency $source
  * @property-read Currency $destination
+ *
+ * @method static ExchangeRateBuilder query()
  */
 class ExchangeRate extends Model
 {
@@ -24,6 +27,11 @@ class ExchangeRate extends Model
         'destination_currency_id',
         'rate',
     ];
+
+    public function newEloquentBuilder($query): ExchangeRateBuilder
+    {
+        return new ExchangeRateBuilder($query);
+    }
 
     public function source(): BelongsTo
     {

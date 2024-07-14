@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Builders\CurrencyAccountBuilder;
+use App\Models\Enums\CurrencyName;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,5 +44,18 @@ class CurrencyAccount extends Model
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class, 'currency_id');
+    }
+
+    /**
+     * It's really not good to exchange currencies into float, because of precision problems
+     * @param CurrencyName $name
+     * @return float
+     */
+    public function exchangeTo(CurrencyName $name): float
+    {
+        $source = $this->currency;
+        $destination = Currency::query()->getByName($name);
+        $rate = ExchangeRate::query()->getExchangeRate($source, $destination);
+        return $this->amount * $rate;
     }
 }

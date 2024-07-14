@@ -92,7 +92,18 @@ class BankAccount extends Model
         return $currencyAccount->save();
     }
 
-    public function balance(?CurrencyName $currencyName = null): int
+    public function totalBalance(): int
+    {
+        $mainCurrencyAccount = $this->getMainCurrencyAccount();
+        $balance = 0;
+        /** @var CurrencyAccount $currencyAccount */
+        foreach ($this->currencyAccounts as $currencyAccount) {
+            $balance += $currencyAccount->exchangeTo($mainCurrencyAccount->currency->name);
+        }
+        return $balance;
+    }
+
+    public function currencyBalance(?CurrencyName $currencyName = null): int
     {
         if (null === $currencyName) {
             $currencyAccount = $this->getMainCurrencyAccount();

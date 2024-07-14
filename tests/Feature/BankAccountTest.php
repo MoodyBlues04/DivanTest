@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\BankAccount;
+use App\Models\Currency;
 use App\Models\Enums\CurrencyName;
+use App\Models\ExchangeRate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -60,11 +62,11 @@ class BankAccountTest extends TestCase
         $this->testRecharge();
 
         foreach ($this->currencyAmounts as $name => $amount) {
-            $this->assertEquals($amount, $this->bankAccount->balance(CurrencyName::tryFrom($name)));
+            $this->assertEquals($amount, $this->bankAccount->currencyBalance(CurrencyName::tryFrom($name)));
         }
         $this->assertEquals(
             $this->currencyAmounts[self::MAIN_CURRENCY->value],
-            $this->bankAccount->balance()
+            $this->bankAccount->currencyBalance()
         );
     }
 
@@ -77,7 +79,7 @@ class BankAccountTest extends TestCase
             $toPay = fake()->numberBetween(0, $amount);
             $expected = $amount - $toPay;
             $this->assertTrue($this->bankAccount->charge($toPay, $currencyName));
-            $this->assertEquals($expected, $this->bankAccount->balance($currencyName));
+            $this->assertEquals($expected, $this->bankAccount->currencyBalance($currencyName));
         }
     }
 
@@ -91,5 +93,15 @@ class BankAccountTest extends TestCase
             $this->expectException(\LogicException::class);
             $this->assertTrue($this->bankAccount->charge($toPay, $currencyName));
         }
+    }
+
+    public function testChangeExchangeRate(): void
+    {
+        $source = Currency::query()->getByName(CurrencyName::USD);
+        $destination = Currency::query()->getByName(CurrencyName::RUB);
+        $rate = fake()->numberBetween(1, 1000);
+
+        $this->assertTrue(ExchangeRate::query()->setExchangeRate($source, $destination, $rate));
+        $this->assertEquals($rate, ExchangeRate::query()->getExchangeRate($source, $destination));
     }
 }
