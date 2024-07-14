@@ -153,10 +153,7 @@ class BankAccountTest extends TestCase
         $this->testSetMainCurrency();
         $this->testRecharge();
 
-        $currencyNames = array_map(
-            fn (string $name) => CurrencyName::tryFrom($name),
-            array_keys($this->currencyAmounts)
-        );
+        $currencyNames = $this->getCurrencyNames();
         $source = fake()->randomElement($currencyNames);
         $destination = fake()->randomElement($currencyNames);
 
@@ -167,5 +164,40 @@ class BankAccountTest extends TestCase
         $this->expectException(\LogicException::class);
         $this->bankAccount->transfer($source, $destination, $transferAmount);
         $this->assertEquals($expectedTotalBalance, $this->bankAccount->totalBalance());
+    }
+
+    public function testCurrencyRemoveSuccess()
+    {
+        $this->testSetMainCurrency();
+        $this->testRecharge();
+
+        $currencyNames = array_filter(
+            $this->getCurrencyNames(),
+            fn (CurrencyName $name) => $name !== $this->mainCurrency
+        );
+        $source = fake()->randomElement($currencyNames);
+
+        $expectedTotalBalance = $this->bankAccount->totalBalance();
+        $this->bankAccount->removeCurrency($source);
+        $this->assertEquals($expectedTotalBalance, $this->bankAccount->totalBalance());
+    }
+
+    public function testCurrencyRemoveFail()
+    {
+        $this->testSetMainCurrency();
+        $this->testRecharge();
+
+        $expectedTotalBalance = $this->bankAccount->totalBalance();
+        $this->expectException(\LogicException::class);
+        $this->bankAccount->removeCurrency($this->mainCurrency);
+        $this->assertEquals($expectedTotalBalance, $this->bankAccount->totalBalance());
+    }
+
+    private function getCurrencyNames(): array
+    {
+        return array_map(
+            fn (string $name) => CurrencyName::tryFrom($name),
+            array_keys($this->currencyAmounts)
+        );
     }
 }

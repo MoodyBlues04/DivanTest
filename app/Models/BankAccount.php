@@ -51,6 +51,17 @@ class BankAccount extends Model
         return $this->currencyAccounts()->firstOrCreate(['currency_id' => $currency->id]);
     }
 
+    public function removeCurrency(CurrencyName $currencyName): void
+    {
+        $targetCurrencyAccount = $this->currencyAccountsBuilder()->getByNameOrFail($currencyName);
+        $mainCurrencyAccount = $this->getMainCurrencyAccount();
+        if ($mainCurrencyAccount->id === $targetCurrencyAccount->id) {
+            throw new \LogicException('You cannot remove main currency account, change it before');
+        }
+        $this->transfer($currencyName, $mainCurrencyAccount->currency->name, $this->currencyBalance($currencyName));
+        $targetCurrencyAccount->delete();
+    }
+
     /**
      * @return CurrencyName[]
      */

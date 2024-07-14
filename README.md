@@ -10,8 +10,9 @@ It's test task
 4. run ```php artisan migrate``` and ```php artisan db:seed``` to seed test data
 5. enjoy
 
-## Tasks
+## Usage
 + test cases checking in: ```tests/Feature/BankAccountTest.php```
++ run ```php artisan test --testsuite=Feature``` to run tests
 
 ## Tips
 + in ```db_schema.mwb``` you can find graphic db schema (for workbench sql)
