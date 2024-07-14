@@ -11,7 +11,7 @@ It's test task
 5. enjoy
 
 ## Tasks
-+ test cases checking in: ```tests/Feature/OpenBankAccountTest.php```
++ test cases checking in: ```tests/Feature/BankAccountTest.php```
 
 ## Tips
 + in ```db_schema.mwb``` you can find graphic db schema (for workbench sql)

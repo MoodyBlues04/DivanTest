@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class OpenBankAccountTest extends TestCase
+class BankAccountTest extends TestCase
 {
     use RefreshDatabase;
 
