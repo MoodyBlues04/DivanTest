@@ -19,7 +19,7 @@ class ExchangeRateFactory extends Factory
     {
         $currenciesIds = Currency::query()->get()->map(fn (Currency $currency) => $currency->id)->all();
         return [
-            'rate' => fake()->numberBetween(1, 1000) * 100,
+            'rate' => fake()->numberBetween(100, 10000),
             'source_currency_id' => fake()->randomElement($currenciesIds),
             'destination_currency_id' => fake()->randomElement($currenciesIds),
         ];

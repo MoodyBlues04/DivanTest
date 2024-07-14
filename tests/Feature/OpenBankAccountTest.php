@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\BankAccount;
-use App\Models\Currency;
 use App\Models\Enums\CurrencyName;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,39 +12,58 @@ class OpenBankAccountTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * Клиент открывает мультивалютный счет, включающий сбережения в 3-х валютах с
-     * основной валютой российский рубль, и пополняет его случайными суммами.
-     *
-     * @return void
-     */
-    public function test(): void
-    {
+    private const MAIN_CURRENCY = CurrencyName::RUB;
 
+    private ?User $user = null;
+    private ?BankAccount $bankAccount = null;
+    private array $currencyAmounts = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
         $this->seed();
 
-//        TODO вынести всю логику в модели/репы
+        $this->user = User::query()->getByName(User::DEFAULT_NAME);
+        $this->bankAccount = $this->user->openBankAccountOrGet();
+
+        $this->currencyAmounts = [];
+        foreach (CurrencyName::cases() as $name) {
+            $this->currencyAmounts[$name->value] = fake()->numberBetween(1, 1000);
+        }
+        foreach ($this->currencyAmounts as $name => $amount) {
+            $this->bankAccount->addCurrency(CurrencyName::tryFrom($name));
+        }
+        foreach ($this->bankAccount->getCurrencyNames() as $currencyName) {
+            $this->assertTrue(in_array($currencyName->value, array_keys($this->currencyAmounts)));
+        }
+    }
+
+    public function testSetMainCurrency(): void
+    {
 //        TODO pcov coverage
 
-        $user = User::query()->getByName(User::DEFAULT_NAME);
-        $this->assertNotNull($user);
+        $this->assertTrue($this->bankAccount->setMainCurrencyAccount(self::MAIN_CURRENCY));
+        $this->assertNotNull($this->bankAccount->getMainCurrencyAccount());
+    }
 
-        $bankAccount = $user->openBankAccountOrGet();
-
-        $currencyNames = CurrencyName::cases();
-        foreach ($currencyNames as $currencyName) {
-            $rubCurrency = $bankAccount->addCurrency($currencyName);
-            $this->assertNotNull($rubCurrency);
+    public function testRecharge(): void
+    {
+        foreach ($this->currencyAmounts as $name => $amount) {
+            $this->assertTrue($this->bankAccount->recharge($amount, CurrencyName::tryFrom($name)));
         }
+    }
 
-        $this->assertTrue($bankAccount->setMainCurrencyAccount(CurrencyName::RUB));
-        $this->assertNotNull($bankAccount->getMainCurrencyAccount());
+    public function testGetBalance(): void
+    {
+        $this->testSetMainCurrency();
+        $this->testRecharge();
 
-        $this->assertEquals($currencyNames, $bankAccount->getCurrencyNames());
-
-        foreach ($currencyNames as $currencyName) {
-            $amount = fake()->numberBetween(1, 1000);
-            $this->assertTrue($bankAccount->recharge($amount, $currencyName));
+        foreach ($this->currencyAmounts as $name => $amount) {
+            $this->assertEquals($amount, $this->bankAccount->getBalance(CurrencyName::tryFrom($name)));
         }
+        $this->assertEquals(
+            $this->currencyAmounts[self::MAIN_CURRENCY->value],
+            $this->bankAccount->getBalance()
+        );
     }
 }

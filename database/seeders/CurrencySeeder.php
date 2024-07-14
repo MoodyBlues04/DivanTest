@@ -32,17 +32,17 @@ class CurrencySeeder extends Seeder
             [
                 'source' => CurrencyName::USD->name,
                 'destination' => CurrencyName::RUB->name,
-                'rate' => 70 * 100,
+                'rate' => 70,
             ],
             [
                 'source' => CurrencyName::EUR->name,
                 'destination' => CurrencyName::RUB->name,
-                'rate' => 80 * 100,
+                'rate' => 80,
             ],
             [
                 'source' => CurrencyName::USD->name,
                 'destination' => CurrencyName::EUR->name,
-                'rate' => 1 * 100,
+                'rate' => 1,
             ],
         ];
 

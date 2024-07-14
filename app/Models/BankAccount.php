@@ -78,7 +78,20 @@ class BankAccount extends Model
     public function recharge(int $amount, CurrencyName $currencyName): bool
     {
         $currencyAccount = $this->currencyAccountsBuilder()->getByNameOrFail($currencyName);
-        $currencyAccount->amount += $amount * 100;
+        $currencyAccount->amount += $amount;
         return $currencyAccount->save();
+    }
+
+    public function getBalance(?CurrencyName $currencyName = null): int
+    {
+        if (null === $currencyName) {
+            $currencyAccount = $this->getMainCurrencyAccount();
+            if (null === $currencyAccount) {
+                throw new \LogicException('Main currency not set');
+            }
+        } else {
+            $currencyAccount = $this->currencyAccountsBuilder()->getByNameOrFail($currencyName);
+        }
+        return $currencyAccount->amount;
     }
 }

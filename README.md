@@ -10,5 +10,8 @@ It's test task
 4. run ```php artisan migrate``` and ```php artisan db:seed``` to seed test data
 5. enjoy
 
+## Tasks
++ test cases checking in: ```tests/Feature/OpenBankAccountTest.php```
+
 ## Tips
 + in ```db_schema.mwb``` you can find graphic db schema (for workbench sql)
