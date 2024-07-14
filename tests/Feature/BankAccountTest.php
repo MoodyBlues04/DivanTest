@@ -127,4 +127,45 @@ class BankAccountTest extends TestCase
         $this->mainCurrency = CurrencyName::USD;
         $this->testTotalBalance();
     }
+
+    public function testTransferSuccess(): void
+    {
+        $this->testSetMainCurrency();
+        $this->testRecharge();
+
+        $currencyNames = array_map(
+            fn (string $name) => CurrencyName::tryFrom($name),
+            array_keys($this->currencyAmounts)
+        );
+        $source = fake()->randomElement($currencyNames);
+        $destination = fake()->randomElement($currencyNames);
+
+        $sourceAmount = $this->bankAccount->currencyBalance($source);
+        $transferAmount = fake()->numberBetween(1, $sourceAmount);
+
+        $expectedTotalBalance = $this->bankAccount->totalBalance();
+        $this->assertTrue($this->bankAccount->transfer($source, $destination, $transferAmount));
+        $this->assertEquals($expectedTotalBalance, $this->bankAccount->totalBalance());
+    }
+
+    public function testTransferFail(): void
+    {
+        $this->testSetMainCurrency();
+        $this->testRecharge();
+
+        $currencyNames = array_map(
+            fn (string $name) => CurrencyName::tryFrom($name),
+            array_keys($this->currencyAmounts)
+        );
+        $source = fake()->randomElement($currencyNames);
+        $destination = fake()->randomElement($currencyNames);
+
+        $sourceAmount = $this->bankAccount->currencyBalance($source);
+        $transferAmount = fake()->numberBetween($sourceAmount, $sourceAmount + 1000);
+
+        $expectedTotalBalance = $this->bankAccount->totalBalance();
+        $this->expectException(\LogicException::class);
+        $this->bankAccount->transfer($source, $destination, $transferAmount);
+        $this->assertEquals($expectedTotalBalance, $this->bankAccount->totalBalance());
+    }
 }

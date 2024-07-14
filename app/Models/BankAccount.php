@@ -115,4 +115,14 @@ class BankAccount extends Model
         }
         return $currencyAccount->amount;
     }
+
+    public function transfer(CurrencyName $sourceName, CurrencyName $destinationName, int $amount): bool
+    {
+        $source = $this->currencyAccountsBuilder()->getByNameOrFail($sourceName);
+        $destination = $this->currencyAccountsBuilder()->getByNameOrFail($destinationName);
+
+        $destinationAmount = ExchangeRate::query()->exchange($source->currency, $destination->currency, $amount);
+        $this->charge($amount, $sourceName);
+        return $this->recharge($destinationAmount, $destinationName);
+    }
 }

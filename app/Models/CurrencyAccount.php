@@ -55,7 +55,6 @@ class CurrencyAccount extends Model
     {
         $source = $this->currency;
         $destination = Currency::query()->getByName($name);
-        $rate = ExchangeRate::query()->getExchangeRate($source, $destination);
-        return $this->amount * $rate;
+        return  ExchangeRate::query()->exchange($source, $destination, $this->amount);
     }
 }

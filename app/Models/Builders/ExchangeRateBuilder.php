@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ExchangeRateBuilder extends Builder
 {
+    public function exchange(Currency $source, Currency $destination, float $amount): float
+    {
+        return $amount * $this->getExchangeRate($source, $destination);
+    }
+
     public function getExchangeRate(Currency $source, Currency $destination): float
     {
         if ($source->name === $destination->name) {
